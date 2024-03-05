@@ -117,6 +117,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3073048236554685943}
   - component: {fileID: 3888325409619065811}
+  - component: {fileID: -5731001758176286086}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -152,7 +153,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 4098946688
+  GlobalObjectIdHash: 250351799
+  InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
   ActiveSceneSynchronization: 0
@@ -160,3 +162,16 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &-5731001758176286086
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8027656804455929568}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a3a12f57944dda49a451a88ff2cf5f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _speed: 10
