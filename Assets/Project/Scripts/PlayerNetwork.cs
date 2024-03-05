@@ -1,16 +1,19 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 namespace Project
 {
-	public class PlayerNetwork : MonoBehaviour
+	public class PlayerNetwork : NetworkBehaviour
 	{
 		private const int MaxInputLength = 1;
 		[SerializeField] private float _speed = 10;
 
 		private Vector2 _movementInput;
+
+		private void Start()
+		{
+			if (!IsOwner) enabled = false;
+		}
 
 		private void Update()
 		{
