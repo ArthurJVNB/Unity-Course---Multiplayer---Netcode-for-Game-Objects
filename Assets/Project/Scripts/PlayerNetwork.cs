@@ -62,12 +62,13 @@ namespace Project
 			if (Input.GetKeyDown(KeyCode.T))
 			{
 				//_randomNumber.Value = Random.Range(0, 100);
-				_randomNumber.Value = new()
-				{
-					Int = Random.Range(0, 100),
-					Bool = !_randomNumber.Value.Bool,
-					Message = System.DateTime.Now.ToString(),
-				};
+				//_randomNumber.Value = new()
+				//{
+				//	Int = Random.Range(0, 100),
+				//	Bool = !_randomNumber.Value.Bool,
+				//	Message = System.DateTime.Now.ToString(),
+				//};
+				TestServerRpc();
 			}
 
 		}
@@ -94,6 +95,28 @@ namespace Project
 			Vector3 deltaMovement = forward + right;
 
 			transform.position += deltaMovement;
+		}
+
+		// Requirements:
+		// - ServerRpc method must end with 'ServerRpc' suffix;
+		// - Must have the ServerRpcAttribute;
+		// - Must be inside an NetworkBehaviour class;
+		// - This NetworkBehaviour class must be inside a NetworkObject hierarchy.
+		// ----------------------
+		// Explanation:
+		// - ServerRpc methods cannot run on the client, but the client can ask
+		// the server to run it on it's behalf.
+		// eg: When the client tries to run the Rpc method, the system interrupts it and asks
+		//     the server to run it when it can. So the server always runs it, even if it was
+		//     called by the client.
+		// ----------------------
+		// Notes:
+		// - It can only pass value type parameters;
+		// - For some reason, it parameters also work with strings.
+		[ServerRpc]
+		private void TestServerRpc(string message)
+		{
+			Debug.Log($"ServerRpc: {OwnerClientId}");
 		}
 	}
 }
