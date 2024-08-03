@@ -68,7 +68,7 @@ namespace Project
 				//	Bool = !_randomNumber.Value.Bool,
 				//	Message = System.DateTime.Now.ToString(),
 				//};
-				TestServerRpc();
+				TestServerRpc("TEST");
 			}
 
 		}
