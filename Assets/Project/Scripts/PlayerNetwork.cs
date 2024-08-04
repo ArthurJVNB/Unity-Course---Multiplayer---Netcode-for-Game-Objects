@@ -1,99 +1,98 @@
-using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace Project
 {
-	public class PlayerNetwork : NetworkBehaviour
-	{
+    public class PlayerNetwork : NetworkBehaviour
+    {
+        private const int MaxInputLength = 1;
+        [SerializeField] private float _speed = 10;
+        [SerializeField] private bool _log = true;
 
-		private const int MaxInputLength = 1;
-		[SerializeField] private float _speed = 10;
 
-		// NOTE: It can only be of value type (cannot use reference type)
-		//private NetworkVariable<int> _randomNumber = new(1, writePerm: NetworkVariableWritePermission.Owner);
-		private NetworkVariable<CustomData> _randomNumber = new(new()
-		{
-			Int = 1,
-			Bool = true,
-		}, writePerm: NetworkVariableWritePermission.Owner);
+        public NetworkVariable<int> _test = new(1, writePerm: NetworkVariableWritePermission.Owner);
 
-		private Vector2 _movementInput;
+        public NetworkVariable<CustomNetworkDataExample> _customData = new(new(true),
+            writePerm: NetworkVariableWritePermission.Owner);
 
-		private struct CustomData : INetworkSerializable
-		{
-			public int Int;
-			public bool Bool;
-			public FixedString128Bytes Message;
+        public NetworkVariable<CustomNetworkDataAnotherExample> _anotherCustomData =
+            new(new(true), writePerm: NetworkVariableWritePermission.Owner);
 
-			public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
-			{
-				serializer.SerializeValue(ref Int);
-				serializer.SerializeValue(ref Bool);
-				serializer.SerializeValue(ref Message);
-			}
-		}
+        private Vector2 _movementInput;
+        private Camera _camera;
 
-		// NOTE: ANY NETWORK OBJECT SHOULD NEVER USE START OR AWAKE. YOU NEED TO USE THIS METHOD BELLOW
-		public override void OnNetworkSpawn()
-		{
-			base.OnNetworkSpawn();
-			_randomNumber.OnValueChanged += RandomNumber_OnValueChanged;
-		}
+        private void Awake()
+        {
+            _camera = Camera.main;
+        }
 
-		private void RandomNumber_OnValueChanged(int previousValue, int newValue)
-		{
-			Debug.Log($"{OwnerClientId}; randomNumber: {newValue}");
-		}
+        public override void OnNetworkSpawn()
+        {
+            base.OnNetworkSpawn();
 
-		private void RandomNumber_OnValueChanged(CustomData previousValue, CustomData newValue)
-		{
-			Debug.Log($"{OwnerClientId}; randomNumber: {newValue.Int}; {newValue.Bool}; {newValue.Message}");
-		}
+            if (_log)
+                Debug.Log($"{OwnerClientId} Connected ({(IsOwner ? "You" : "Other Player")})");
 
-		private void Update()
-		{
-			//if (!IsOwner) enabled = false;
-			if (!IsOwner) return;
+            _test.OnValueChanged += (value, newValue) =>
+            {
+                if (_log)
+                    Debug.Log($"{OwnerClientId}; {newValue}");
+            };
 
-			GetInputs();
-			HandleMovement();
+            _customData.OnValueChanged += (value, newValue) =>
+            {
+                if (_log)
+                    Debug.Log($"{OwnerClientId}; CustomData Changed; {newValue}");
+            };
 
-			if (Input.GetKeyDown(KeyCode.T))
-			{
-				//_randomNumber.Value = Random.Range(0, 100);
-				_randomNumber.Value = new()
-				{
-					Int = Random.Range(0, 100),
-					Bool = !_randomNumber.Value.Bool,
-					Message = System.DateTime.Now.ToString(),
-				};
-			}
+            _anotherCustomData.OnValueChanged += (value, newValue) =>
+            {
+                if (_log)
+                    Debug.Log($"{OwnerClientId}; AnotherCustomData Changed; {newValue}");
+            };
+        }
 
-		}
+        private void Update()
+        {
+            if (!IsOwner)
+            {
+                // enabled = false;
+                return;
+            }
 
-		private void GetInputs()
-		{
-			_movementInput = Vector2.ClampMagnitude(new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical")), MaxInputLength);
-		}
+            GetInputs();
+            HandleMovement();
+        }
 
-		private void HandleMovement()
-		{
-			if (_movementInput == Vector2.zero) return;
+        private void GetInputs()
+        {
+            if (Input.GetKeyDown(KeyCode.T))
+            {
+                _test.Value = System.DateTime.Now.Millisecond;
+                _customData.Value = new(true);
+                _anotherCustomData.Value = new(true);
+            }
 
-			//Vector3 deltaSpeed = _speed * Time.deltaTime * new Vector3(_movementInput.y, 0, _movementInput.x);
-			float deltaForward = _speed * Time.deltaTime * _movementInput.y;
-			float deltaRight = _speed * Time.deltaTime * _movementInput.x;
+            _movementInput = Vector2.ClampMagnitude(new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical")),
+                MaxInputLength);
+        }
 
-			Vector3 forward = Vector3.ProjectOnPlane(Camera.main.transform.forward, Vector3.up).normalized;
-			forward *= deltaForward;
+        private void HandleMovement()
+        {
+            if (_movementInput == Vector2.zero) return;
 
-			Vector3 right = Vector3.ProjectOnPlane(Camera.main.transform.right, Vector3.up).normalized;
-			right *= deltaRight;
+            float deltaForward = _speed * Time.deltaTime * _movementInput.y;
+            float deltaRight = _speed * Time.deltaTime * _movementInput.x;
 
-			Vector3 deltaMovement = forward + right;
+            Vector3 forward = Vector3.ProjectOnPlane(_camera.transform.forward, Vector3.up).normalized;
+            forward *= deltaForward;
 
-			transform.position += deltaMovement;
-		}
-	}
+            Vector3 right = Vector3.ProjectOnPlane(_camera.transform.right, Vector3.up).normalized;
+            right *= deltaRight;
+
+            Vector3 deltaMovement = forward + right;
+
+            transform.position += deltaMovement;
+        }
+    }
 }
