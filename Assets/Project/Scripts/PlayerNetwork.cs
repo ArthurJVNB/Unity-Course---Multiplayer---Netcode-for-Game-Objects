@@ -7,8 +7,9 @@ namespace Project
     {
         private const int MaxInputLength = 1;
         [SerializeField] private float _speed = 10;
-        
-        
+        [SerializeField] private bool _log = true;
+
+
         public NetworkVariable<int> _test = new(1, writePerm: NetworkVariableWritePermission.Owner);
 
         public NetworkVariable<CustomNetworkDataExample> _customData = new(new(true),
@@ -16,10 +17,10 @@ namespace Project
 
         public NetworkVariable<CustomNetworkDataAnotherExample> _anotherCustomData =
             new(new(true), writePerm: NetworkVariableWritePermission.Owner);
-        
+
         private Vector2 _movementInput;
         private Camera _camera;
-        
+
         private void Awake()
         {
             _camera = Camera.main;
@@ -28,22 +29,26 @@ namespace Project
         public override void OnNetworkSpawn()
         {
             base.OnNetworkSpawn();
-            
-            Debug.Log($"{OwnerClientId} Connected ({(IsOwner ? "You" : "Other Player")})");
-            
+
+            if (_log)
+                Debug.Log($"{OwnerClientId} Connected ({(IsOwner ? "You" : "Other Player")})");
+
             _test.OnValueChanged += (value, newValue) =>
             {
-                Debug.Log($"{OwnerClientId}; {newValue}");
+                if (_log)
+                    Debug.Log($"{OwnerClientId}; {newValue}");
             };
 
             _customData.OnValueChanged += (value, newValue) =>
             {
-                Debug.Log($"{OwnerClientId}; CustomData Changed; {newValue}");
+                if (_log)
+                    Debug.Log($"{OwnerClientId}; CustomData Changed; {newValue}");
             };
 
             _anotherCustomData.OnValueChanged += (value, newValue) =>
             {
-                Debug.Log($"{OwnerClientId}; AnotherCustomData Changed; {newValue}");
+                if (_log)
+                    Debug.Log($"{OwnerClientId}; AnotherCustomData Changed; {newValue}");
             };
         }
 
@@ -54,7 +59,7 @@ namespace Project
                 // enabled = false;
                 return;
             }
-            
+
             GetInputs();
             HandleMovement();
         }
@@ -67,10 +72,11 @@ namespace Project
                 _customData.Value = new(true);
                 _anotherCustomData.Value = new(true);
             }
-            
-            _movementInput = Vector2.ClampMagnitude(new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical")), MaxInputLength);
+
+            _movementInput = Vector2.ClampMagnitude(new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical")),
+                MaxInputLength);
         }
-        
+
         private void HandleMovement()
         {
             if (_movementInput == Vector2.zero) return;
